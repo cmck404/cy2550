@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# Collin McKinley
+# I would like to apologize, I ususally write C, python is not my cup of tea, 
+# but its almost too easy
+
+# For argv
+import sys
+
+# For secrets.choice
+import secrets
+
+# Variables for generation
+words   = 4
+caps    = 0
+numbers = 0
+symbols = 0
+
+	
+# Go through our arguments
+
+argviter = iter(sys.argv[1:])
+for arg in argviter:
+
+    # Check for our switches
+    if arg == "-h" or arg == "--help":
+        print("""usage: xkcdpwgen [-h] [-w WORDS] [-c CAPS] [-n NUMBERS] [-s SYMBOLS]
+                
+Generate a secure, memorable password using the XKCD method
+                
+optional arguments:
+    -h, --help            show this help message and exit
+    -w WORDS, --words WORDS
+                          include WORDS words in the password (default=4)
+    -c CAPS, --caps CAPS  capitalize the first letter of CAPS random words
+                          (default=0)
+    -n NUMBERS, --numbers NUMBERS
+                          insert NUMBERS random numbers in the password
+                          (default=0)
+    -s SYMBOLS, --symbols SYMBOLS
+                          insert SYMBOLS random symbols in the password
+                          (default=0)""")
+        exit(0)
+    elif arg == "-w" or arg == "--word":
+        words = int(next(argviter)) 
+    elif arg == "-c" or arg == "--caps":
+        caps = int(next(argviter)) 
+    elif arg == "-n" or arg == "--numbers":
+        numbers = int(next(argviter)) 
+    elif arg == "-s" or arg == "--symbols":
+        symbols = int(next(argviter)) 
+
+# Load our wordlist
+wordlist = open("words.txt", 'r').readlines()
+
+passwordlist = []
+
+# Generate our words
+for i in range(words):
+    passwordlist.append(secrets.choice(wordlist).strip().lower())
+
+
+# Fill in our caps
+
+if caps > words:
+    print("Caps is larger than words, we'll try our best")
+    caps = words
+
+if caps == words:
+    for i in range(words):
+        passwordlist[i] = passwordlist[i].title()
+elif caps < words:
+    for i in range(caps):
+        # Generate a random index to make capital
+        index = secrets.choice(range(len(passwordlist)))
+
+        # Make sure the index we generated isnt already capped (or else it would look like nothing happened
+        while passwordlist[index][0].isupper():
+            index = secrets.choice(range(len(passwordlist)))
+
+        passwordlist[index] = passwordlist[index].title()
+
+# Fill in our numbers
+
+numbersarr = list("0123456789")
+
+for i in range(numbers):
+    # Generate an index to insert the number at
+    index = secrets.choice(range(len(passwordlist)))
+
+    # Insert the number
+    passwordlist.insert(index, secrets.choice(numbersarr))
+
+# And finally fill in our symbols
+
+symbolsarr = list("~!@#$%^&*.:;")
+
+for i in range(symbols):
+    # Generate an index to insert the symbol at
+    index = secrets.choice(range(len(passwordlist)))
+
+    # Insert it
+    passwordlist.insert(index, secrets.choice(symbolsarr))
+
+
+# Print the final password
+print("".join(passwordlist))
